@@ -1,21 +1,24 @@
 package com.jtprince.coordinateoffset.offsetter.server;
 
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleItemStackData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleVibrationData;
-import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerParticle;
 import com.jtprince.coordinateoffset.Offset;
-import com.jtprince.coordinateoffset.offsetter.PacketOffsetter;
+import com.jtprince.coordinateoffset.offsetter.packet.PacketSendOffsetter;
 
-public class OffsetterServerParticle extends PacketOffsetter<WrapperPlayServerParticle> {
+import static com.jtprince.util.PacketUtil.applyItemStack;
+
+public class OffsetterServerParticle extends PacketSendOffsetter {
     public OffsetterServerParticle() {
-        super(WrapperPlayServerParticle.class, PacketType.Play.Server.PARTICLE);
+        super(PacketType.Play.Server.PARTICLE);
     }
 
     @Override
-    public void offset(WrapperPlayServerParticle packet, Offset offset, User user) {
+    public void offset(PacketSendEvent event, Offset offset) {
+        WrapperPlayServerParticle packet = new WrapperPlayServerParticle(event);
         packet.setPosition(apply(packet.getPosition(), offset));
 
         if (packet.getParticle().getData() instanceof ParticleVibrationData vibrationData) {

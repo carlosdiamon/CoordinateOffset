@@ -4,10 +4,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Container for the offsets all players currently have.
@@ -15,16 +12,19 @@ import java.util.UUID;
 class PlayerOffsetsManager {
     private final CoordinateOffset plugin;
 
-    private final Map<UUID, Map<UUID, Offset>> playerOffsets = new HashMap<>();
+    private final Map<UUID, Map<UUID, Offset>> playerOffsets;
 
     /* There are two worlds cached because of world-change timing issues - see docs/OffsetChangeHandling.md */
     /** World the player is currently in for all intents and purposes (updated by a POSITION packet only) */
-    private final Map<UUID, UUID> playerPositionedWorld = new HashMap<>();
+    private final Map<UUID, UUID> playerPositionedWorld;
     /** World the player has initiated a world change to and will be in soon (updated by Bukkit events) */
-    private final Map<UUID, UUID> playerLookaheadWorld = new HashMap<>();
+    private final Map<UUID, UUID> playerLookaheadWorld;
 
-    PlayerOffsetsManager(CoordinateOffset plugin) {
+    public PlayerOffsetsManager(CoordinateOffset plugin) {
         this.plugin = plugin;
+        this.playerOffsets = Collections.synchronizedMap(new HashMap<>());
+        this.playerPositionedWorld = Collections.synchronizedMap(new HashMap<>());
+        this.playerLookaheadWorld = Collections.synchronizedMap(new HashMap<>());
     }
 
     /**
@@ -33,7 +33,7 @@ class PlayerOffsetsManager {
      * @param player Player to query.
      * @return The player's current offset in the world they are in.
      */
-    synchronized @NotNull Offset getOffset(@NotNull Player player) {
+    public @NotNull Offset getOffset(@NotNull Player player) {
         Map<UUID, Offset> offsetPerWorldCache = getPerWorldCacheFor(player.getUniqueId(), player.getName());
 
         UUID positionedWorld = playerPositionedWorld.get(player.getUniqueId());
@@ -50,7 +50,7 @@ class PlayerOffsetsManager {
      * @param world World to query for the offset.
      * @return The player's current offset in the specified world.
      */
-    synchronized @NotNull Offset getOffset(@NotNull Player player, @NotNull World world) {
+    public @NotNull Offset getOffset(@NotNull Player player, @NotNull World world) {
         Map<UUID, Offset> offsetPerWorldCache = getPerWorldCacheFor(player.getUniqueId(), player.getName());
         return offsetPerWorldCache.get(world.getUID());
     }
@@ -63,7 +63,7 @@ class PlayerOffsetsManager {
      * @param playerUuid Player to query.
      * @return The player's offset in the world they will soon be in.
      */
-    synchronized @NotNull Offset getOffsetLookahead(@NotNull UUID playerUuid) {
+    public @NotNull Offset getOffsetLookahead(@NotNull UUID playerUuid) {
         Map<UUID, Offset> offsetPerWorldCache = getPerWorldCacheFor(playerUuid, playerUuid.toString());
         UUID respawningWorld = playerLookaheadWorld.get(playerUuid);
         if (respawningWorld == null) {
@@ -73,7 +73,7 @@ class PlayerOffsetsManager {
         return offsetPerWorldCache.get(respawningWorld);
     }
 
-    private @NotNull Map<UUID, Offset> getPerWorldCacheFor(UUID player, String logName) {
+    public @NotNull Map<UUID, Offset> getPerWorldCacheFor(UUID player, String logName) {
         Map<UUID, Offset> offsetPerWorldCache = playerOffsets.get(player);
         if (offsetPerWorldCache == null) {
             throw new NoSuchElementException("Unknown player for Offset lookup: " + logName);
@@ -91,7 +91,7 @@ class PlayerOffsetsManager {
      * join, respawn, or teleport.</p>
      * @param context Offset generation context, containing the player and world that should have an offset regenerated.
      */
-    synchronized void regenerateOffset(OffsetProviderContext context) {
+    public void regenerateOffset(OffsetProviderContext context) {
         Offset newOffset = plugin.getOffsetProviderManager().provideOffset(context);
 
         Map<UUID, Offset> offsetPerWorldCache = playerOffsets.computeIfAbsent(context.player().getUniqueId(), k -> new HashMap<>());
@@ -106,7 +106,7 @@ class PlayerOffsetsManager {
      * @param player Player to update.
      * @param world World that the player is now in.
      */
-    synchronized void setPositionedWorld(Player player, World world) {
+    public void setPositionedWorld(Player player, World world) {
         playerPositionedWorld.put(player.getUniqueId(), world.getUID());
     }
 
@@ -114,7 +114,7 @@ class PlayerOffsetsManager {
      * Drop a player from all caching in this offset manager.
      * @param player The player to drop, presumably that is quitting the server.
      */
-    synchronized void remove(@NotNull Player player) {
+    public void remove(@NotNull Player player) {
         playerOffsets.remove(player.getUniqueId());
         playerLookaheadWorld.remove(player.getUniqueId());
         playerPositionedWorld.remove(player.getUniqueId());

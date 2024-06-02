@@ -2,6 +2,7 @@ package com.jtprince.coordinateoffset;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.morepersistentdatatypes.datatypes.GenericDataType;
+import com.jtprince.util.RandomUtil;
 import org.bukkit.Location;
 import org.bukkit.persistence.PersistentDataType;
 import org.checkerframework.dataflow.qual.Pure;
@@ -55,8 +56,7 @@ public record Offset (int x, int z) {
      * @return A new Offset with values that are multiples of 128 blocks.
      */
     public static @NotNull Offset random(int bound) {
-        Random random = new Random();
-        return align(random.nextInt(-bound, bound), random.nextInt(-bound, bound), ALIGN_OVERWORLD);
+        return align(RandomUtil.nextInt(-bound, bound), RandomUtil.nextInt(-bound, bound), ALIGN_OVERWORLD);
     }
 
     /**

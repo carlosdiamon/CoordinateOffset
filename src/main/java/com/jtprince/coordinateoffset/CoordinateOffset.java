@@ -56,7 +56,7 @@ public final class CoordinateOffset extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        PacketEvents.getAPI().terminate();
     }
 
     /**

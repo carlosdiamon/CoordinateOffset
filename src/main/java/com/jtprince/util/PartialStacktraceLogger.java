@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * Utility to print condensed stacktraces for when the lower frames of the stack are irrelevant.
  */
-public class PartialStacktraceLogger {
+public final class PartialStacktraceLogger {
     /**
      * Log a stacktrace based on an exception, including frames between the exception itself and the caller of this
      * log function.
@@ -37,12 +37,4 @@ public class PartialStacktraceLogger {
                 "\n (+" + popped + " hidden frames)"
         );
     }
-
-//    public static void recursiveException(int frameCount) {
-//        if (frameCount == 0) {
-//            throw new ArrayIndexOutOfBoundsException("Test exception only!");
-//        } else {
-//            recursiveException(frameCount-1);
-//        }
-//    }
 }

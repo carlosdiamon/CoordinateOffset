@@ -1,18 +1,19 @@
 package com.jtprince.coordinateoffset.offsetter.server;
 
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnPosition;
 import com.jtprince.coordinateoffset.Offset;
-import com.jtprince.coordinateoffset.offsetter.PacketOffsetter;
+import com.jtprince.coordinateoffset.offsetter.packet.PacketSendOffsetter;
 
-public class OffsetterServerSpawnPosition extends PacketOffsetter<WrapperPlayServerSpawnPosition> {
+public class OffsetterServerSpawnPosition extends PacketSendOffsetter {
     public OffsetterServerSpawnPosition() {
-        super(WrapperPlayServerSpawnPosition.class, PacketType.Play.Server.SPAWN_POSITION);
+        super(PacketType.Play.Server.SPAWN_POSITION);
     }
 
     @Override
-    public void offset(WrapperPlayServerSpawnPosition packet, Offset offset, User user) {
+    public void offset(PacketSendEvent event, Offset offset) {
+        WrapperPlayServerSpawnPosition packet = new WrapperPlayServerSpawnPosition(event);
         packet.setPosition(apply(packet.getPosition(), offset));
     }
 }

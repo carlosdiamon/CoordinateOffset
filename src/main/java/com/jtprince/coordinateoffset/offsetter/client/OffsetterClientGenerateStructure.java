@@ -1,18 +1,18 @@
 package com.jtprince.coordinateoffset.offsetter.client;
 
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientGenerateStructure;
 import com.jtprince.coordinateoffset.Offset;
-import com.jtprince.coordinateoffset.offsetter.PacketOffsetter;
+import com.jtprince.coordinateoffset.offsetter.packet.PacketReceiveOffsetter;
 
-public class OffsetterClientGenerateStructure extends PacketOffsetter<WrapperPlayClientGenerateStructure> {
+public class OffsetterClientGenerateStructure extends PacketReceiveOffsetter {
     public OffsetterClientGenerateStructure() {
-        super(WrapperPlayClientGenerateStructure.class, PacketType.Play.Client.GENERATE_STRUCTURE);
+        super(PacketType.Play.Client.GENERATE_STRUCTURE);
     }
-
     @Override
-    public void offset(WrapperPlayClientGenerateStructure packet, Offset offset, User user) {
+    public void offset(PacketReceiveEvent event, Offset offset) {
+        WrapperPlayClientGenerateStructure packet = new WrapperPlayClientGenerateStructure(event);
         packet.setBlockPosition(unapply(packet.getBlockPosition(), offset));
     }
 }

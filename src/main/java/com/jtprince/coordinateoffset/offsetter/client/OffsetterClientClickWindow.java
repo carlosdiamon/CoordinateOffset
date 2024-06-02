@@ -1,29 +1,32 @@
 package com.jtprince.coordinateoffset.offsetter.client;
 
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.jtprince.coordinateoffset.Offset;
-import com.jtprince.coordinateoffset.offsetter.PacketOffsetter;
+import com.jtprince.coordinateoffset.offsetter.packet.PacketReceiveOffsetter;
+import com.jtprince.util.PacketUtil;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class OffsetterClientClickWindow extends PacketOffsetter<WrapperPlayClientClickWindow> {
+public class OffsetterClientClickWindow extends PacketReceiveOffsetter {
     public OffsetterClientClickWindow() {
-        super(WrapperPlayClientClickWindow.class, PacketType.Play.Client.CLICK_WINDOW);
+        super(PacketType.Play.Client.CLICK_WINDOW);
     }
 
     @Override
-    public void offset(WrapperPlayClientClickWindow packet, Offset offset, User user) {
+    public void offset(PacketReceiveEvent event, Offset offset) {
+        WrapperPlayClientClickWindow packet = new WrapperPlayClientClickWindow(event);
+
         if (packet.getSlots().isPresent()) {
             Map<Integer, ItemStack> clientItems = packet.getSlots().get();
             Map<Integer, ItemStack> serverItems = clientItems.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, v -> unapplyItemStack(v.getValue(), offset)));
+                    .collect(Collectors.toMap(Map.Entry::getKey, v -> PacketUtil.unapplyItemStack(v.getValue(), offset)));
             packet.setSlots(Optional.of(serverItems));
         }
-        packet.setCarriedItemStack(unapplyItemStack(packet.getCarriedItemStack(), offset));
+        packet.setCarriedItemStack(PacketUtil.unapplyItemStack(packet.getCarriedItemStack(), offset));
     }
 }

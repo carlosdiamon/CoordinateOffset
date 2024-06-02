@@ -4,6 +4,8 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.jtprince.coordinateoffset.offsetter.OffsetterRegistry;
+import com.jtprince.coordinateoffset.offsetter.packet.PacketReceiveOffsetter;
+import com.jtprince.coordinateoffset.offsetter.packet.PacketSendOffsetter;
 import com.jtprince.util.PartialStacktraceLogger;
 import org.bukkit.entity.Player;
 
@@ -12,16 +14,19 @@ import java.util.logging.Logger;
 
 class PacketOffsetAdapter {
     private final CoordinateOffset coPlugin;
-    private final Logger logger;
     private final PacketDebugger packetHistory;
+    private final OffsetterRegistry registry;
+    private final Logger logger;
 
     PacketOffsetAdapter(CoordinateOffset plugin) {
         this.coPlugin = plugin;
-        this.logger = plugin.getLogger();
+        this.registry = new OffsetterRegistry();
         this.packetHistory = new PacketDebugger(plugin);
+        this.logger = plugin.getLogger();
     }
 
     void registerAdapters() {
+        registry.init();
         PacketEvents.getAPI().getEventManager().registerListener(new Listener());
         PacketEvents.getAPI().init();
     }
@@ -82,7 +87,11 @@ class PacketOffsetAdapter {
                     return;
                 }
 
-                OffsetterRegistry.attemptToOffset(event, offset);
+                PacketSendOffsetter packet = registry.getSendOffsetter(event.getPacketType());
+
+                if (packet != null) {
+                    packet.offset(event, offset);
+                }
             } catch (Exception e) {
                 PartialStacktraceLogger.logStacktrace(logger, "Failed to apply offset for outgoing packet " +
                         event.getPacketType().getName() + " to " + event.getUser().getName(), e);
@@ -105,7 +114,11 @@ class PacketOffsetAdapter {
                 Offset offset = coPlugin.getPlayerManager().getOffset(player, player.getWorld());
                 if (offset.equals(Offset.ZERO)) return;
 
-                OffsetterRegistry.attemptToUnOffset(event, offset);
+                PacketReceiveOffsetter packet = registry.getReceiveOffsetter(event.getPacketType());
+
+                if (packet != null) {
+                    packet.offset(event, offset);
+                }
             } catch (Exception e) {
                 PartialStacktraceLogger.logStacktrace(logger, "Failed to reverse offset for incoming packet " +
                         event.getPacketType().getName() + " from " + event.getUser().getName(), e);

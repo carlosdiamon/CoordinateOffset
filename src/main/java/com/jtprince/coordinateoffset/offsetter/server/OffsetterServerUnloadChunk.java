@@ -1,18 +1,19 @@
 package com.jtprince.coordinateoffset.offsetter.server;
 
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk;
 import com.jtprince.coordinateoffset.Offset;
-import com.jtprince.coordinateoffset.offsetter.PacketOffsetter;
+import com.jtprince.coordinateoffset.offsetter.packet.PacketSendOffsetter;
 
-public class OffsetterServerUnloadChunk extends PacketOffsetter<WrapperPlayServerUnloadChunk> {
+public class OffsetterServerUnloadChunk extends PacketSendOffsetter {
     public OffsetterServerUnloadChunk() {
-        super(WrapperPlayServerUnloadChunk.class, PacketType.Play.Server.UNLOAD_CHUNK);
+        super(PacketType.Play.Server.UNLOAD_CHUNK);
     }
 
     @Override
-    public void offset(WrapperPlayServerUnloadChunk packet, Offset offset, User user) {
+    public void offset(PacketSendEvent event, Offset offset) {
+        WrapperPlayServerUnloadChunk packet = new WrapperPlayServerUnloadChunk(event);
         packet.setChunkX(applyChunkX(packet.getChunkX(), offset));
         packet.setChunkZ(applyChunkZ(packet.getChunkZ(), offset));
     }
